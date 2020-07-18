@@ -4,6 +4,7 @@ const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
 const { NODE_ENV } = require('./config')
+const ArticlesService = require('./articles-service')
 
 const app = express()
 
@@ -14,6 +15,21 @@ const morganOption = (NODE_ENV === 'production')
 app.use(morgan(morganOption))
 app.use(helmet())
 app.use(cors())
+
+app.get('/articles', (req, res, next) => {
+
+    // In order for this method to work we need to access the Knex instance
+    // but avoid establishing a dependency cycle.
+    // This can be achieved via a app.set() method in ./server.js (line 11),
+    // with a db property set and the Knex instance set as the value.
+    const knexInstance = req.app.get('db')
+
+    ArticlesService.getAllArticles(knexInstance)
+        .then(articles => {
+            res.json(articles)
+        })
+        .catch(next) // Note we're passing next into the .catch from the promise chain so that any errors get handled by our error handler middleware.
+})
 
 app.get('/', (req, res) => {
   res.send('Hello, world!')
