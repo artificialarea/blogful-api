@@ -1,7 +1,7 @@
 const { expect } = require('chai')
 const knex = require('knex')
 const app = require('../src/app');
-const { makeArticlesArray } = require('./articles.fixtures')
+const fixtures = require('./articles.fixtures')
 const supertest = require('supertest');
 
 describe('Articles Endpoints', () => {
@@ -24,7 +24,7 @@ describe('Articles Endpoints', () => {
     describe('GET /articles', () => {
 
         context('Given there are articles in the database', () => {
-            const testArticles = makeArticlesArray()
+            const testArticles = fixtures.makeArticlesArray()
     
             beforeEach('insert articles', () => {
                 return db
@@ -52,7 +52,7 @@ describe('Articles Endpoints', () => {
     describe('GET /articles/:article_id', () => {
 
         context('Given there are articles in the database', () => {
-            const testArticles = makeArticlesArray()
+            const testArticles = fixtures.makeArticlesArray()
     
             beforeEach('insert articles', () => {
                 return db
