@@ -44,6 +44,6 @@ const ArticlesService = {
             .update(newArticleFields)
     },
 
-}
+};
 
 module.exports = ArticlesService;

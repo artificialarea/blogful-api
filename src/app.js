@@ -1,82 +1,29 @@
-require('dotenv').config()
-const express = require('express')
-const morgan = require('morgan')
-const cors = require('cors')
-const helmet = require('helmet')
-const { NODE_ENV } = require('./config')
-const ArticlesService = require('./articles-service')
-const { restart } = require('nodemon')
+require('dotenv').config();
+const express = require('express');
+const morgan = require('morgan');
+const cors = require('cors');
+const helmet = require('helmet');
 
-const app = express()
-const jsonParser = express.json() // to read body of requests (for POST)
+const { NODE_ENV } = require('./config');
+const articlesRouter = require('./articles/articles-router');
+const errorHandler = require('./error-handler');
+
+const app = express();
 
 const morganOption = (NODE_ENV === 'production')
     ? 'tiny'
     : 'dev';
 
-app.use(morgan(morganOption))
-app.use(helmet())
-app.use(cors())
+app.use(morgan(morganOption));
+app.use(helmet());
+app.use(cors());
 
-app.get('/articles', (req, res, next) => {
-
-    // In order for this method to work we need to access the Knex instance
-    // but avoid establishing a dependency cycle.
-    // This can be achieved via a app.set() method in ./server.js (line 11),
-    // with a db property set and the Knex instance set as the value.
-    const knexInstance = req.app.get('db')
-
-    ArticlesService.getAllArticles(knexInstance)
-        .then(articles => {
-            res.json(articles)
-        })
-        .catch(next) // Note we're passing next into the .catch from the promise chain so that any errors get handled by our error handler middleware.
-})
-
-app.get('/articles/:article_id', (req, res, next) => {
-    // res.json({ 'requested_id': req.params.article_id, this: 'should fail'})
-    const knexInstance = req.app.get('db')
-    ArticlesService.getById(knexInstance, req.params.article_id)
-        .then(article => {
-            if(!article) {
-                return res.status(404).json({
-                    error: { message: `Article doesn't exist` }
-                })
-            }
-            res.json(article)
-        })
-        .catch(next)
-
-})
+app.use('/articles', articlesRouter);
 
 app.get('/', (req, res) => {
-    res.send('Hello, world!')
+    res.send('Hello, world!');
 })
 
-app.post('/articles', jsonParser, (req, res, next) => {
-    const { title, content, style } = req.body;
-    const newArticle = { title, content, style };
-    ArticlesService.insertArticle(
-        req.app.get('db'), 
-        newArticle
-    )
-        .then(article => {
-            res .status(201)
-                .location(`/articles/${article.id}`)
-                .json(article)
-        })
-        .catch(next)
-})
+app.use(errorHandler)
 
-app.use(function errorHandler(error, req, res, next) {
-    let response
-    if (NODE_ENV === 'production') {
-        response = { error: { message: 'server error' } }
-    } else {
-        console.error(error)
-        response = { message: error.message, error }
-    }
-    res.status(500).json(response)
-})
-
-module.exports = app
+module.exports = app;
