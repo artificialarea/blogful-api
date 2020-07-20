@@ -22,8 +22,16 @@ app.use('/articles', articlesRouter);
 
 app.get('/', (req, res) => {
     res.send('Hello, world!');
-})
+});
 
-app.use(errorHandler)
+// For XSS Sanitation
+// to simulate a Cross-site scripting (XSS) hack! 
+// src: https://courses.thinkful.com/node-postgres-v1/checkpoint/16#cross-site-scripting-xss-
+app.get('/xss', (req, res) => {
+    res.cookie('secretToken', '1234567890');
+    res.sendFile(__dirname + '/xss-example.html')
+});
+
+app.use(errorHandler);
 
 module.exports = app;

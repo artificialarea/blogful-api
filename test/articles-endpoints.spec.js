@@ -2,7 +2,6 @@ const knex = require('knex')
 const app = require('../src/app');
 const fixtures = require('./articles.fixtures')
 const supertest = require('supertest');
-const { expect } = require('chai');
 
 describe('Articles Endpoints', () => {
 
@@ -49,7 +48,7 @@ describe('Articles Endpoints', () => {
 
     });
 
-    describe('GET /articles/:article_id', () => {
+    describe.only('GET /articles/:article_id', () => {
 
         context('Given there are articles in the database', () => {
             const testArticles = fixtures.makeArticlesArray()
@@ -68,6 +67,35 @@ describe('Articles Endpoints', () => {
                     .expect(200, expectedArticle)
             })
         });
+
+        // XSS Sanitation to protect from malicious hacks
+        // (requires npm install xss)
+        context(`Given an XSS attack article`, () => {
+
+            const maliciousArticle = {
+                id: 911,
+                title: 'Naughty naughty very naughty <script>alert("xss");</script>',
+                style: 'How-to',
+                content: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`
+            };
+
+            beforeEach('insert malicious article', () => {
+                return db 
+                    .into('blogful_articles')
+                    .insert([ maliciousArticle ])
+            });
+
+            it('removed XSS attack content', () => {
+                return supertest(app)
+                    .get(`/articles/${maliciousArticle.id}`)
+                    .expect(200)
+                    .expect(res => {
+                        console.log('Thanks to xss sanitization, the insertion of malicious code from a POST is rendered inert upon GET: ', res.body.title, res.body.content);
+                        expect(res.body.title).to.eql('Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;') // converts script to render it inert
+                        expect(res.body.content).to.eql(`Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`) // onerror="alert(document.cookie);" gets removed
+                    })
+            });
+        })
 
         context(`Given the database is empty`, () => {
             it(`responds with 404`, () => {
