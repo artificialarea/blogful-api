@@ -22,6 +22,7 @@ articlesRouter
         const { title, content, style } = req.body
         const newArticle = { title, content, style }
 
+        // DRY (don't repeat yourself) validation logic
         for (const [key, value] of Object.entries(newArticle)) {
             if (value == null) {
                 return res.status(400).json({
