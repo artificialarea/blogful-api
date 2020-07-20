@@ -79,7 +79,8 @@ describe('Articles Endpoints', () => {
 
     });
 
-    describe(`POST /articles`, () => {
+    describe.only(`POST /articles`, () => {
+
         it(`creates an article, responding with 201 and the new article`, function() {
             this.retries(3);    // repeats test to ensure that actual and expected date_published timestamps match
             const newArticle = {
@@ -107,6 +108,46 @@ describe('Articles Endpoints', () => {
                         .expect(postRes.body)
                 })
         });
+
+        it(`responds with 400 and an error message when the 'title' is missing`, () => {
+            return supertest(app)
+                .post('/articles')
+                .send({
+                    // title: 'Test new article title',
+                    content: 'Test new article content ...',
+                    style: 'Listicle',
+                })
+                .expect(400, {
+                    error: { message: `Missing 'title' in request body`}
+                })
+        });
+
+        it(`responds with 400 and an error message when the 'content' is missing`, () => {
+            return supertest(app)
+                .post('/articles')
+                .send({
+                    title: 'Test new article title',
+                    // content: 'Test new article content ...',
+                    style: 'Listicle',
+                })
+                .expect(400, {
+                    error: { message: `Missing 'content' in request body`}
+                })
+        });
+
+        it(`responds with 400 and an error message when the 'style' is missing`, () => {
+            return supertest(app)
+                .post('/articles')
+                .send({
+                    title: 'Test new article title',
+                    content: 'Test new article content ...',
+                    // style: 'Listicle',
+                })
+                .expect(400, {
+                    error: { message: `Missing 'style' in request body`}
+                })
+        });
+
     });
 
 });

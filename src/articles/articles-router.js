@@ -18,9 +18,18 @@ articlesRouter
             })
             .catch(next) // Note we're passing next into the .catch from the promise chain so that any errors get handled by our error handler middleware.
     })
-    .post(jsonParser, (req, res, next) => {
+    .post(jsonParser, (req, res, next) => {     // note the addition of jsonParser
         const { title, content, style } = req.body
         const newArticle = { title, content, style }
+
+        for (const [key, value] of Object.entries(newArticle)) {
+            if (value == null) {
+                return res.status(400).json({
+                    error: { message: `Missing '${key}' in request body`}
+                })
+            }
+        }
+
         ArticlesService.insertArticle(
             req.app.get('db'), 
             newArticle
@@ -38,7 +47,7 @@ articlesRouter
     .route('/:article_id')
     .get((req, res, next) => {
         const knexInstance = req.app.get('db');
-        ArticlesService.getById(knexInstance, req.params.article_id)
+        ArticlesService.getById(knexInstance, req.params.article_id)    // note params method
             .then(article => {
                 if (!article) {
                     return res.status(404).json({
@@ -49,7 +58,6 @@ articlesRouter
             })
             .catch(next)
     })
-
 
 
 module.exports = articlesRouter;
