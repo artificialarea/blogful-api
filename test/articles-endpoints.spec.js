@@ -1,8 +1,8 @@
-const { expect } = require('chai')
 const knex = require('knex')
 const app = require('../src/app');
 const fixtures = require('./articles.fixtures')
 const supertest = require('supertest');
+const { expect } = require('chai');
 
 describe('Articles Endpoints', () => {
 
@@ -77,6 +77,36 @@ describe('Articles Endpoints', () => {
             });
         });
 
+    });
+
+    describe(`POST /articles`, () => {
+        it(`creates an article, responding with 201 and the new article`, function() {
+            this.retries(3);    // repeats test to ensure that actual and expected date_published timestamps match
+            const newArticle = {
+                title: 'Test new article',
+                style: 'Listicle',
+                content: 'Test new article content...'
+            };
+            return supertest(app)
+                .post('/articles')
+                .send(newArticle)
+                .expect(201)
+                .expect(res => {    // test still passes without testing db...
+                    expect(res.body.title).to.eql(newArticle.title)
+                    expect(res.body.style).to.eql(newArticle.style)
+                    expect(res.body.content).to.eql(newArticle.content)
+                    expect(res.body).to.have.property('id')
+                    expect(res.headers.location).to.eql(`/articles/${res.body.id}`)
+                    const expected = new Date().toLocaleString()    // to strip out milleseconds mismatch
+                    const actual = new Date(res.body.date_published).toLocaleString()   
+                    expect(actual).to.eql(expected)
+                })
+                .then(postRes => {  // ...so, GET /articles/:article_id to validate that the POST adds article to db
+                    return supertest(app)
+                        .get(`/articles/${postRes.body.id}`)
+                        .expect(postRes.body)
+                })
+        });
     });
 
 });
