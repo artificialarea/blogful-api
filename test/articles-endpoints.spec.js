@@ -2,6 +2,7 @@ const knex = require('knex')
 const app = require('../src/app');
 const fixtures = require('./articles.fixtures')
 const supertest = require('supertest');
+const { expect } = require('chai');
 
 describe('Articles Endpoints', () => {
 
@@ -22,8 +23,16 @@ describe('Articles Endpoints', () => {
 
     describe('GET /articles', () => {
 
+        context('Given no articles', () => {
+            it('responds with 200 and an empty list', () => {
+                return supertest(app)
+                    .get('/articles')
+                    .expect(200, [])
+            });
+        });
+
         context('Given there are articles in the database', () => {
-            const testArticles = fixtures.makeArticlesArray()
+            const testArticles = fixtures.makeArticlesArray();
     
             beforeEach('insert articles', () => {
                 return db
@@ -38,17 +47,17 @@ describe('Articles Endpoints', () => {
             });
         });
 
-        context('Given the database is empty', () => {
-            it('responds with 200 and an empty list', () => {
-                return supertest(app)
-                    .get('/articles')
-                    .expect(200, [])
-            });
-        });
-
     });
 
-    describe.only('GET /articles/:article_id', () => {
+    describe('GET /articles/:article_id', () => {
+
+        context(`Given no articles`, () => {
+            it(`responds with 404`, () => {
+                return supertest(app)
+                    .get(`/articles/123456`)
+                    .expect(404, { error: { message: `Article doesn't exist` } })
+            });
+        });
 
         context('Given there are articles in the database', () => {
             const testArticles = fixtures.makeArticlesArray()
@@ -97,13 +106,7 @@ describe('Articles Endpoints', () => {
             });
         })
 
-        context(`Given the database is empty`, () => {
-            it(`responds with 404`, () => {
-                return supertest(app)
-                    .get(`/articles/123456`)
-                    .expect(404, { error: { message: `Article doesn't exist` } })
-            });
-        });
+        
 
     });
 
@@ -160,5 +163,43 @@ describe('Articles Endpoints', () => {
         });
 
     });
+
+    describe(`DELETE /article/:article_id`, () => {
+
+        context(`Given there are articles in the database`, () => {
+            const testArticles = fixtures.makeArticlesArray();
+
+            beforeEach('insert articles', () => {
+                return db
+                    .into('blogful_articles')
+                    .insert(testArticles)
+            });
+
+            it(`responds with 204 and removes the article`, () => {
+                const idToDelete = 2;
+                const expectedArticles = testArticles.filter(b => b.id !== idToDelete)
+                return supertest(app) 
+                    .delete(`/articles/${idToDelete}`)
+                    .expect(204)
+                    .then(res => {
+                        return supertest(app)
+                            .get('/articles')
+                            .expect(expectedArticles)
+                    })
+            });
+
+        });
+
+        context(`Given no articles`, () => {
+
+            it(`responds with 404`, () => {
+                const articleId = 123213123;
+                return supertest(app)
+                    .delete(`/articles/${articleId}`)
+                    .expect(404, { error: { message: `Article doesn't exist`} })
+            });
+
+        })
+    })
 
 });

@@ -5,6 +5,15 @@ const ArticlesService = require('./articles-service');
 const articlesRouter = express.Router();
 const jsonParser = express.json(); // to read body of requests (for POST)
 
+// may use serializeArticle later as a DRY refactor
+const serializeArticle = article => ({
+    id: article.id,
+    style: article.style,
+    title: xss(article.title),
+    content: xss(article.content),
+    date_published: article.date_published,
+})
+
 articlesRouter
     .route('/')
     .get((req, res, next) => {
@@ -47,26 +56,46 @@ articlesRouter
 
 articlesRouter
     .route('/:article_id')
-    .get((req, res, next) => {
-        const knexInstance = req.app.get('db');
-        ArticlesService.getById(knexInstance, req.params.article_id)    // note params method
+    // DRY REFACTOR: .all() handler triggers for all .chained methods (GET, DELETE, etc...).
+    .all((req, res, next) => {       
+        ArticlesService.getById(
+            req.app.get('db'), 
+            req.params.article_id
+        )    
             .then(article => {
                 if (!article) {
                     return res.status(404).json({
                         error: { message: `Article doesn't exist` }
                     })
                 }
-                // res.json(article)
-                // sanitization, to prevent malicious hacks
-                res.json({
-                    id: article.id,
-                    style: article.style,
-                    title: xss(article.title),      // sanitize
-                    content: xss(article.content),  // sanitize
-                    date_published: article.date_published,
-                })
+                console.log('article: ', article)
+                console.log('res.article: ', res.article)
+                res.article = article // save the article for the next middleware
+                next() // don't forget to call next so the next middleware happens! .get(), .delete(), etc.
             })
             .catch(next)
+    })
+    .get((req, res, next) => {
+        // NOTE: modfication of 'article' object to 'res.article'
+        res.json({
+            id: res.article.id,
+            style: res.article.style,
+            title: xss(res.article.title),      // sanitize
+            content: xss(res.article.content),  // sanitize
+            date_published: res.article.date_published,
+        })
+    })
+    .delete((req, res, next) => {
+        // res.status(204).end();
+        ArticlesService.deleteArticle(
+            req.app.get('db'),
+            req.params.article_id
+        )
+            .then(() => {
+                res.status(204).end()
+            })
+            .catch(next)
+
     })
 
 

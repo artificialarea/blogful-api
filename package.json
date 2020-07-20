@@ -2,7 +2,7 @@
   "name": "blogful-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
     "test": "mocha --require test/setup.js",
     "dev": "nodemon src/server.js",
@@ -13,7 +13,7 @@
     "deploy": "git push heroku master"
   },
   "keywords": [],
-  "author": "",
+  "author": "Sacha Sedriks <sachased@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
