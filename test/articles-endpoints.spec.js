@@ -244,6 +244,18 @@ describe('Articles Endpoints', () => {
                             .expect(expectedArticle)
                     })
             });
+
+            it(`responds with 400 when no required fields supplied`, () => {
+                const idToUpdate = 2;
+                return supertest(app)
+                    .patch(`/api/articles/${idToUpdate}`)
+                    .send({ irrelevantField: 'foo' })
+                    .expect(400, {
+                        error: {
+                            message: `Request body must contain either 'title', 'style' or 'content'`
+                        }
+                    })
+            });
         });
 
     });
