@@ -26,16 +26,10 @@ const ArticlesService = {
             // ^^^ .then to extract the expected object out of the array.
     },
     deleteArticle(knex, id) {
-        // console.log('deleteArticle id: ', {id})
         return knex
             .from('blogful_articles')
             .where({ id })
             .delete()
-            // .then(
-            //     console.log('required?')
-            // )
-            // ^^^^ Why .then() ? 
-            // See FOOTNOTES in earlier repo: https://github.com/artificialarea/knex-practice/blob/master/src/blogful.js
     },
     updateArticle(knex, id, newArticleFields) {
         return knex

@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const xss = require('xss'); // sanitizes strings of content to prevent malicious hacks
 const ArticlesService = require('./articles-service');
@@ -47,7 +48,7 @@ articlesRouter
         )
             .then(article => {
                 res .status(201)
-                    .location(`/articles/${article.id}`)
+                    .location(path.posix.join(req.originalUrl, `/${article.id}`)) // re:posix and req.originalUrl, see details: https://courses.thinkful.com/node-postgres-v1/checkpoint/17#-api-prefix
                     .json(article)
             })
             .catch(next)
@@ -68,8 +69,6 @@ articlesRouter
                         error: { message: `Article doesn't exist` }
                     })
                 }
-                console.log('article: ', article)
-                console.log('res.article: ', res.article)
                 res.article = article // save the article for the next middleware
                 next() // don't forget to call next so the next middleware happens! .get(), .delete(), etc.
             })

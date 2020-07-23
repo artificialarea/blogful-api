@@ -21,12 +21,12 @@ describe('Articles Endpoints', () => {
     before('clean the table', () => db('blogful_articles').truncate());
     afterEach('cleanup', () => db('blogful_articles').truncate());
 
-    describe('GET /articles', () => {
+    describe('GET /api/articles', () => {
 
         context('Given no articles', () => {
             it('responds with 200 and an empty list', () => {
                 return supertest(app)
-                    .get('/articles')
+                    .get('/api/articles')
                     .expect(200, [])
             });
         });
@@ -42,19 +42,19 @@ describe('Articles Endpoints', () => {
     
             it('responds with 200 and all of the articles', () => {
                 return supertest(app)
-                    .get('/articles')
+                    .get('/api/articles')
                     .expect(200, testArticles)
             });
         });
 
     });
 
-    describe('GET /articles/:article_id', () => {
+    describe('GET /api/articles/:article_id', () => {
 
         context(`Given no articles`, () => {
             it(`responds with 404`, () => {
                 return supertest(app)
-                    .get(`/articles/123456`)
+                    .get(`/api/articles/123456`)
                     .expect(404, { error: { message: `Article doesn't exist` } })
             });
         });
@@ -72,7 +72,7 @@ describe('Articles Endpoints', () => {
                 const articleId = 2;
                 const expectedArticle = testArticles[articleId - 1]
                 return supertest(app)
-                    .get(`/articles/${articleId}`)
+                    .get(`/api/articles/${articleId}`)
                     .expect(200, expectedArticle)
             })
         });
@@ -96,10 +96,9 @@ describe('Articles Endpoints', () => {
 
             it('removed XSS attack content', () => {
                 return supertest(app)
-                    .get(`/articles/${maliciousArticle.id}`)
+                    .get(`/api/articles/${maliciousArticle.id}`)
                     .expect(200)
                     .expect(res => {
-                        console.log('Thanks to xss sanitization, the insertion of malicious code from a POST is rendered inert upon GET: ', res.body.title, res.body.content);
                         expect(res.body.title).to.eql('Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;') // converts script to render it inert
                         expect(res.body.content).to.eql(`Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`) // onerror="alert(document.cookie);" gets removed
                     })
@@ -110,7 +109,7 @@ describe('Articles Endpoints', () => {
 
     });
 
-    describe(`POST /articles`, () => {
+    describe(`POST /api/articles`, () => {
 
         it(`creates an article, responding with 201 and the new article`, function() {
             this.retries(3);    // repeats test to ensure that actual and expected date_published timestamps match
@@ -120,7 +119,7 @@ describe('Articles Endpoints', () => {
                 content: 'Test new article content...'
             };
             return supertest(app)
-                .post('/articles')
+                .post('/api/articles/')
                 .send(newArticle)
                 .expect(201)
                 .expect(res => {    // test still passes without testing db...
@@ -128,14 +127,14 @@ describe('Articles Endpoints', () => {
                     expect(res.body.style).to.eql(newArticle.style)
                     expect(res.body.content).to.eql(newArticle.content)
                     expect(res.body).to.have.property('id')
-                    expect(res.headers.location).to.eql(`/articles/${res.body.id}`)
+                    expect(res.headers.location).to.eql(`/api/articles/${res.body.id}`)
                     const expected = new Date().toLocaleString()    // to strip out milleseconds mismatch
                     const actual = new Date(res.body.date_published).toLocaleString()   
                     expect(actual).to.eql(expected)
                 })
-                .then(postRes => {  // ...so, GET /articles/:article_id to validate that the POST adds article to db
+                .then(postRes => {  // ...so, GET /api/articles/:article_id to validate that the POST adds article to db
                     return supertest(app)
-                        .get(`/articles/${postRes.body.id}`)
+                        .get(`/api/articles/${postRes.body.id}`)
                         .expect(postRes.body)
                 })
         });
@@ -154,7 +153,7 @@ describe('Articles Endpoints', () => {
                 delete newArticle[field];
 
                 return supertest(app)
-                    .post('/articles')
+                    .post('/api/articles')
                     .send(newArticle)
                     .expect(400, {
                         error: { message: `Missing '${field}' in request body`}
@@ -165,6 +164,17 @@ describe('Articles Endpoints', () => {
     });
 
     describe(`DELETE /article/:article_id`, () => {
+
+        context(`Given no articles`, () => {
+
+            it(`responds with 404`, () => {
+                const articleId = 123213123;
+                return supertest(app)
+                    .delete(`/api/articles/${articleId}`)
+                    .expect(404, { error: { message: `Article doesn't exist`} })
+            });
+
+        })
 
         context(`Given there are articles in the database`, () => {
             const testArticles = fixtures.makeArticlesArray();
@@ -177,29 +187,19 @@ describe('Articles Endpoints', () => {
 
             it(`responds with 204 and removes the article`, () => {
                 const idToDelete = 2;
-                const expectedArticles = testArticles.filter(b => b.id !== idToDelete)
+                const expectedArticles = testArticles.filter(article => article.id !== idToDelete);
                 return supertest(app) 
-                    .delete(`/articles/${idToDelete}`)
+                    .delete(`/api/articles/${idToDelete}`)
                     .expect(204)
                     .then(res => {
                         return supertest(app)
-                            .get('/articles')
+                            .get('/api/articles')
                             .expect(expectedArticles)
                     })
             });
 
         });
 
-        context(`Given no articles`, () => {
-
-            it(`responds with 404`, () => {
-                const articleId = 123213123;
-                return supertest(app)
-                    .delete(`/articles/${articleId}`)
-                    .expect(404, { error: { message: `Article doesn't exist`} })
-            });
-
-        })
-    })
+    });
 
 });
