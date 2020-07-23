@@ -98,7 +98,7 @@ articlesRouter
         const { title, content, style } = req.body
         const articleToUpdate = { title, content, style }
 
-        const numberOfValues = Object.values(articleToUpdate).filter(Boolean).length
+        const numberOfValues = Object.values(articleToUpdate).filter(Boolean).length;
         if (numberOfValues === 0) {
             return res.status(400).json({
                 error: {

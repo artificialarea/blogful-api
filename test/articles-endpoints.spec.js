@@ -256,6 +256,30 @@ describe('Articles Endpoints', () => {
                         }
                     })
             });
+
+            it(`responds with 204 when updating only a subset of fields (ignoring others)`, () => {
+                const idToUpdate = 2;
+                const updateArticle = {
+                    title: 'updated only article title',
+                }
+                const expectedArticle = {
+                    ...testArticles[idToUpdate - 1],
+                    ...updateArticle
+                }
+
+                return supertest(app)
+                    .patch(`/api/articles/${idToUpdate}`)
+                    .send({
+                        ...updateArticle,
+                        fieldToIgnore: `should not be in GET response`
+                    })
+                    .expect(204)
+                    .then(res => {
+                        return supertest(app)
+                            .get(`/api/articles/${idToUpdate}`)
+                            .expect(expectedArticle)
+                    })
+            });
         });
 
     });
