@@ -19,7 +19,7 @@ usersRouter
     .get((req, res, next) => {
         const knexInstance = req.app.get('db');
         UsersService.getAllUsers(knexInstance)
-            .then(user => {
+            .then(users => {
                 res.json(users.map(serializeUser))
             })
             .catch(next)

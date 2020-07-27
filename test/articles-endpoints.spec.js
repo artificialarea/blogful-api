@@ -1,11 +1,11 @@
 const knex = require('knex')
 const app = require('../src/app');
-const fixtures = require('./articles.fixtures')
+const { makeArticlesArray } = require('./articles.fixtures')
+const { makeUsersArray } = require('./users.fixtures')
 const supertest = require('supertest');
 const { expect } = require('chai');
-const { makeArticlesArray } = require('./articles.fixtures');
 
-describe('Articles Endpoints', () => {
+describe.only('Articles Endpoints', () => {
 
     let db;
 
@@ -19,8 +19,14 @@ describe('Articles Endpoints', () => {
 
     after('disconnect from db', () => db.destroy());
 
-    before('clean the table', () => db('blogful_articles').truncate());
-    afterEach('cleanup', () => db('blogful_articles').truncate());
+    // Due to tables related via foreign keys, it is no longer possible to TRUNCATE just a single table
+    // before('clean the table', () => db('blogful_articles').truncate());
+    // afterEach('cleanup', () => db('blogful_articles').truncate());
+    // Need to turncate all the tables at the same time
+    // plus need to reset RESTART the sequence generatator to generate a primary key
+    before('clean the table', () => db.raw('TRUNCATE blogful_articles, blogful_users, blogful_comments RESTART IDENTITY CASCADE'))
+    afterEach('cleanup',() => db.raw('TRUNCATE blogful_articles, blogful_users, blogful_comments RESTART IDENTITY CASCADE'))
+    // then in every beforeEach hook that is used to load data, ensure that users (with no foreign keys) are loaded first
 
     describe('GET /api/articles', () => {
 
@@ -33,12 +39,18 @@ describe('Articles Endpoints', () => {
         });
 
         context('Given there are articles in the database', () => {
-            const testArticles = fixtures.makeArticlesArray();
+            const testUsers = makeUsersArray(); 
+            const testArticles = makeArticlesArray();
     
             beforeEach('insert articles', () => {
                 return db
-                    .into('blogful_articles')
-                    .insert(testArticles)
+                    .into('blogful_users')
+                    .insert(testUsers)
+                    .then(() => {
+                        return db
+                            .into('blogful_articles')
+                            .insert(testArticles)
+                    })
             });
     
             it('responds with 200 and all of the articles', () => {
@@ -61,12 +73,18 @@ describe('Articles Endpoints', () => {
         });
 
         context('Given there are articles in the database', () => {
-            const testArticles = fixtures.makeArticlesArray()
+            const testUsers = makeUsersArray();
+            const testArticles = makeArticlesArray()
     
             beforeEach('insert articles', () => {
                 return db
-                    .into('blogful_articles')
-                    .insert(testArticles)
+                    .into('blogful_users')
+                    .insert(testUsers)
+                    .then(() => {
+                        return db
+                            .into('blogful_articles')
+                            .insert(testArticles)
+                    })
             });
     
             it('responds with 200 and the specified article', () => {
@@ -81,7 +99,7 @@ describe('Articles Endpoints', () => {
         // XSS Sanitation to protect from malicious hacks
         // (requires npm install xss)
         context(`Given an XSS attack article`, () => {
-
+            const testUsers = makeUsersArray(); 
             const maliciousArticle = {
                 id: 911,
                 title: 'Naughty naughty very naughty <script>alert("xss");</script>',
@@ -89,10 +107,15 @@ describe('Articles Endpoints', () => {
                 content: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`
             };
 
-            beforeEach('insert malicious article', () => {
-                return db 
-                    .into('blogful_articles')
-                    .insert([ maliciousArticle ])
+            beforeEach('insert articles', () => {
+                return db
+                    .into('blogful_users') 
+                    .insert(testUsers)
+                    .then(() => { 
+                        return db
+                            .into('blogful_articles')
+                            .insert([ maliciousArticle ])
+                    })
             });
 
             it('removed XSS attack content', () => {
@@ -178,12 +201,18 @@ describe('Articles Endpoints', () => {
         })
 
         context(`Given there are articles in the database`, () => {
-            const testArticles = fixtures.makeArticlesArray();
+            const testUsers = makeUsersArray();
+            const testArticles = makeArticlesArray();
 
             beforeEach('insert articles', () => {
                 return db
-                    .into('blogful_articles')
-                    .insert(testArticles)
+                    .into('blogful_users') 
+                    .insert(testUsers)
+                    .then(() => { 
+                        return db
+                            .into('blogful_articles')
+                            .insert(testArticles)
+                    })
             });
 
             it(`responds with 204 and removes the article`, () => {
@@ -215,13 +244,19 @@ describe('Articles Endpoints', () => {
         });
 
         context(`Given there are articles in the database`, () => {
+            const testUsers = makeUsersArray();
             const testArticles = makeArticlesArray();
 
             beforeEach('insert articles', () => {
                 return db
-                    .into('blogful_articles')
-                    .insert(testArticles)
-            })
+                    .into('blogful_users') 
+                    .insert(testUsers)
+                    .then(() => { 
+                        return db
+                            .into('blogful_articles')
+                            .insert(testArticles)
+                    })
+            });
 
             it(`responds with 204 and updates the article`, () => {
                 const idToUpdate = 2;

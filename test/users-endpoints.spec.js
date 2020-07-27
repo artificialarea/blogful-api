@@ -1,6 +1,7 @@
 const knex = require('knex');
 const app = require('../src/app.js');
-const fixtures = require('./articles.fixtures');
+const { makeArticlesArray } = require('./articles.fixtures')
+const { makeUsersArray } = require('./users.fixtures')
 const supertest = require('supertest');
 
 describe.skip(`Users Endpoints`, () => {
@@ -32,7 +33,7 @@ describe.skip(`Users Endpoints`, () => {
 
         context(`Given there are users in the database`, () => {
 
-            const testUsers = fixtures.makeUsersArray();
+            const testUsers = makeUsersArray();
             
             beforeEach(`insert users into db`, () => {
                 return db
