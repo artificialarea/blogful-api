@@ -99,8 +99,8 @@ articlesRouter
             .catch(next)
     })
     .patch(jsonParser, (req, res, next) => {
-        const { title, content, style } = req.body
-        const articleToUpdate = { title, content, style }
+        const { title, content, style, author } = req.body
+        const articleToUpdate = { title, content, style, author }
 
         const numberOfValues = Object.values(articleToUpdate).filter(Boolean).length;
         if (numberOfValues === 0) {

@@ -4,7 +4,7 @@ const { makeArticlesArray } = require('./articles.fixtures')
 const { makeUsersArray } = require('./users.fixtures')
 const supertest = require('supertest');
 
-describe.skip(`Users Endpoints`, () => {
+describe.only(`Users Endpoints`, () => {
 
     let db;
 
@@ -18,8 +18,8 @@ describe.skip(`Users Endpoints`, () => {
 
     after('disconnect from db', () => db.destroy());
 
-    before('clean the table', () => db('blogful_users').truncate());
-    afterEach('cleanup', () => db('blogful_users').truncate());
+    before('clean the table', () => db.raw('TRUNCATE blogful_articles, blogful_users, blogful_comments RESTART IDENTITY CASCADE'))
+    afterEach('cleanup',() => db.raw('TRUNCATE blogful_articles, blogful_users, blogful_comments RESTART IDENTITY CASCADE'))
 
     describe(`GET /api/users`, () => {
         

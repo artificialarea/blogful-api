@@ -5,7 +5,7 @@ const { makeUsersArray } = require('./users.fixtures')
 const supertest = require('supertest');
 const { expect } = require('chai');
 
-describe.only('Articles Endpoints', () => {
+describe('Articles Endpoints', () => {
 
     let db;
 
