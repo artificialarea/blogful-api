@@ -13,6 +13,7 @@ const serializeArticle = article => ({
     title: xss(article.title),
     content: xss(article.content),
     date_published: article.date_published,
+    author: article.author,
 })
 
 articlesRouter
@@ -30,7 +31,7 @@ articlesRouter
             .catch(next) // Note we're passing next into the .catch from the promise chain so that any errors get handled by our error handler middleware.
     })
     .post(jsonParser, (req, res, next) => {     // note the addition of jsonParser
-        const { title, content, style } = req.body
+        const { title, content, style, author } = req.body
         const newArticle = { title, content, style }
 
         // DRY (don't repeat yourself) validation logic
@@ -41,6 +42,8 @@ articlesRouter
                 })
             }
         }
+
+        newArticle.author = author;
 
         ArticlesService.insertArticle(
             req.app.get('db'), 
@@ -82,6 +85,7 @@ articlesRouter
             title: xss(res.article.title),      // sanitize
             content: xss(res.article.content),  // sanitize
             date_published: res.article.date_published,
+            author: res.article.author
         })
     })
     .delete((req, res, next) => {
