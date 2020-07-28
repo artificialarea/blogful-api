@@ -26,7 +26,7 @@ articlesRouter
         // with a db property set and the Knex instance set as the value.
         ArticlesService.getAllArticles(req.app.get('db'))
             .then(articles => {
-                res.json(articles)
+                res.json(articles.map(serializeArticle))
             })
             .catch(next) // Note we're passing next into the .catch from the promise chain so that any errors get handled by our error handler middleware.
     })
@@ -52,7 +52,7 @@ articlesRouter
             .then(article => {
                 res .status(201)
                     .location(path.posix.join(req.originalUrl, `/${article.id}`)) // re:posix and req.originalUrl, see details: https://courses.thinkful.com/node-postgres-v1/checkpoint/17#-api-prefix
-                    .json(article)
+                    .json(serializeArticle(article))
             })
             .catch(next)
     })

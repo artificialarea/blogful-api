@@ -4,7 +4,7 @@ const { makeArticlesArray } = require('./articles.fixtures')
 const { makeUsersArray } = require('./users.fixtures')
 const supertest = require('supertest');
 
-describe.skip(`Users Endpoints`, () => {
+describe(`Users Endpoints`, () => {
 
     let db;
 
@@ -41,11 +41,14 @@ describe.skip(`Users Endpoints`, () => {
                     .insert(testUsers)
              })
 
-
             it(`responds with 200 and returns list of users`, () => {
+                const testUsersWithoutPasswords = testUsers.map(user => {
+                    const { password, ...rest } = user;
+                    return rest;
+                })
                 return supertest(app)
                     .get('/api/users')
-                    .expect(200, testUsers)
+                    .expect(200, testUsersWithoutPasswords)
             
             });
         })
