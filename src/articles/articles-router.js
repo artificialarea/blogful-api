@@ -93,7 +93,8 @@ articlesRouter
             req.app.get('db'),
             req.params.article_id
         )
-            .then(() => {
+            .then(numRowsAffected => {
+                console.log('numRowsAffected: ', numRowsAffected)  // WHAT IS 'numRowsAffected'? it's simply an anonymous function, no?
                 res.status(204).end()
             })
             .catch(next)

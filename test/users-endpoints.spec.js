@@ -4,7 +4,7 @@ const { makeArticlesArray } = require('./articles.fixtures')
 const { makeUsersArray } = require('./users.fixtures')
 const supertest = require('supertest');
 
-describe.only(`Users Endpoints`, () => {
+describe.skip(`Users Endpoints`, () => {
 
     let db;
 
