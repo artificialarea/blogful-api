@@ -6,7 +6,6 @@ const ArticlesService = require('./articles-service');
 const articlesRouter = express.Router();
 const jsonParser = express.json(); // to read body of requests (for POST)
 
-// TODO: may use serializeArticle later as a DRY refactor
 const serializeArticle = article => ({
     id: article.id,
     style: article.style,
