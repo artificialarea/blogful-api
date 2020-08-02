@@ -25,11 +25,23 @@ Several changes were made to `.env, package.json, config.js, and postgrator-conf
 Jonathan said, 
 "I think postgrator does something under the hood to accommodate ssl settings on db up in the environment. The double bang (!!) casts a truthy or falsy value to a boolean true or false. So by adding it as an actual postgrator config value, it was able to establish the connection."
 
-Other alteration in `packgage.json "scripts"`...
-from originally:
+### Other alterations 
+
+**1) in `packgage.json "scripts"`**
+
+originally:
 `"migrate:production": "heroku run npm run migrate"`
-to ThinkChat suggestion of:
+
+per ThinkChat suggestion changed to:
 `"migrate:production": "env SSL=true NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL=$(heroku config:get DATABASE_URL) npm run migrate"`
-.
-I subsequently tried to revert back to the original after initial migration done but migrate:production failed again, so returning to the convoluted command with SSL
+
+I subsequently tried to revert back to the original after initial migration done but migrate:production failed again, so returning to the convoluted command with SSL.
+
+**2) in `config.js`**
+
+originally:
+`DATABASE_URL: process.env.DATABASE_URL || 'postgresql://dunder_mifflin@localhost/blogful'`
+
+changed to:
+`DATABASE_URL: process.env.DATABASE_URL || /* heroku URI */` ... which isn't a valid solution because my PostgreSQL URI is exposed, but fine in this particular scenario as api ain't a paid service.
 
