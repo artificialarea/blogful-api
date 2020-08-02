@@ -36,11 +36,11 @@ on db up in the environment.
 The double bang (!!) casts a truthy or falsy value to a boolean true or false. 
 So by adding it as an actual postgrator config value, it was able to establish the connection."
 
-other alteration in packgage.json "scripts"...
-from originally to:
-"migrate:production": "heroku run npm run migrate"
-to ThinkChat suggestion:
-"migrate:production": "env SSL=true NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL=$(heroku config:get DATABASE_URL) npm run migrate"
+Other alteration in `packgage.json "scripts"`...
+from originally:
+`"migrate:production": "heroku run npm run migrate"`
+to ThinkChat suggestion of:
+`"migrate:production": "env SSL=true NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL=$(heroku config:get DATABASE_URL) npm run migrate"`
 .
-opted to revert back to original after migration done
+I subsequently tried to revert back to the original after initial migration done but migrate:production failed again, so returning to the convoluted command with SSL
 */
