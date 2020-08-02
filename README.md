@@ -37,11 +37,11 @@ per ThinkChat suggestion changed to:
 
 I subsequently tried to revert back to the original after initial migration done but migrate:production failed again, so returning to the convoluted command with SSL.
 
-**2) in `config.js`**
+**2) in `.env`** (not sure if necessary)
 
 originally:
 `DATABASE_URL: process.env.DATABASE_URL || 'postgresql://dunder_mifflin@localhost/blogful'`
 
 changed to:
-`DATABASE_URL: process.env.DATABASE_URL || /* heroku URI */` ... which isn't a valid solution because my PostgreSQL URI is exposed, but fine in this particular scenario as api ain't a paid service.
+`DATABASE_URL: process.env.DATABASE_URL || /* heroku URI */` 
 
