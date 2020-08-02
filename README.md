@@ -20,28 +20,20 @@ Although I carefully following instructions for deploying database per https://c
 
 Thanks to a long troubleshooting session with Jonathan Huxhold @ ThinkfulChat, the issue ws eventually solved.
 
-Several changes were made to `.env, package.json, config.js, and postgrator-config.js` so I'm uncertain which particular change (or combination of changes) was the deciding factor. That said, the last change made for migration to work was done the `postgrator-config.js` by adding `"ssl": !!process.env.SSL` to the module.export properties.
+### Alterations 
 
-Jonathan said, 
-"I think postgrator does something under the hood to accommodate ssl settings on db up in the environment. The double bang (!!) casts a truthy or falsy value to a boolean true or false. So by adding it as an actual postgrator config value, it was able to establish the connection."
+**1) `packgage.json "scripts"`**
 
-### Other alterations 
-
-**1) in `packgage.json "scripts"`**
-
-originally:
+* Originally:
 `"migrate:production": "heroku run npm run migrate"`
 
-per ThinkChat suggestion changed to:
+* Update, per ThinkChat suggestion:
 `"migrate:production": "env SSL=true NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL=$(heroku config:get DATABASE_URL) npm run migrate"`
 
-I subsequently tried to revert back to the original after initial migration done but migrate:production failed again, so returning to the convoluted command with SSL.
+* I subsequently tried to revert back to the original after initial migration done but migrate:production failed again, so returning to the convoluted command with SSL.
 
-**2) in `.env`** (not sure if necessary)
+**2) `postgrator-config.js`**
 
-originally:
-`DATABASE_URL: process.env.DATABASE_URL || 'postgresql://dunder_mifflin@localhost/blogful'`
+* Add `"ssl": !!process.env.SSL` to the `module.export` properties.
 
-changed to:
-`DATABASE_URL: process.env.DATABASE_URL || /* heroku URI */` 
-
+Jonathan said, "I think postgrator does something under the hood to accommodate ssl settings on db up in the environment. The double bang (!!) casts a truthy or falsy value to a boolean true or false. So by adding it as an actual postgrator config value, it was able to establish the connection."
