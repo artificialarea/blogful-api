@@ -14,11 +14,11 @@
 
 ## CRUCIAL UPDATE! commit 
 
-Although I carefully following instructions for deploying database per https://courses.thinkful.com/node-postgres-v1/checkpoint/20 ... I reached an impasse at the stage of trying to run migrations on the heroku-postresql.
+Despite carefully following instructions for deploying database per https://courses.thinkful.com/node-postgres-v1/checkpoint/20 ... I reached an impasse at the stage of trying to run migrations on the heroku-postresql.
 
 **`$ npm run migrate:production`** kept failing at the `blogful-api migrate script` re: `postgrator --config postgrator-config.js` "not found".
 
-Thanks to a long troubleshooting session with Jonathan Huxhold @ ThinkfulChat, the issue ws eventually solved.
+Thanks to a long troubleshooting session with Jonathan Huxhold @ ThinkfulChat, the issue ws eventually resolved.
 
 ### Alterations 
 
